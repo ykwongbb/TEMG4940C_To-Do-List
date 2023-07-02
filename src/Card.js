@@ -1,54 +1,48 @@
 import React, { useState } from 'react';
-import './App.css';
 
-function Card({ title, description, onUpdate, onDelete }) {
-  const [editable, setEditable] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(title);
-  const [editedDescription, setEditedDescription] = useState(description);
-
-  const handleEdit = () => {
-    setEditable(true);
-  };
-
-  const handleSave = () => {
-    onUpdate(editedTitle, editedDescription);
-    setEditable(false);
-  };
-
-  const handleCancel = () => {
-    setEditable(false);
-    setEditedTitle(title);
-    setEditedDescription(description);
-  };
+function Card({ title, description, index, status, onUpdateTask, onDeleteTask }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedTitle, setUpdatedTitle] = useState(title);
+  const [updatedDescription, setUpdatedDescription] = useState(description);
 
   const handleTitleChange = (event) => {
-    setEditedTitle(event.target.value);
+    setUpdatedTitle(event.target.value);
   };
 
   const handleDescriptionChange = (event) => {
-    setEditedDescription(event.target.value);
+    setUpdatedDescription(event.target.value);
   };
 
-  const handleDelete = () => {
-    onDelete();
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setUpdatedTitle(title);
+    setUpdatedDescription(description);
+  };
+
+  const handleSaveClick = () => {
+    setIsEditing(false);
+    onUpdateTask(index, updatedTitle, updatedDescription, status);
+  };
+
+  const handleDeleteClick = () => {
+    onDeleteTask(index, status);
   };
 
   return (
     <div className="card">
-      {editable ? (
+      {isEditing ? (
         <>
-          <input type="text" value={editedTitle} onChange={handleTitleChange} className="card-input" />
-          <textarea value={editedDescription} onChange={handleDescriptionChange} className="card-textarea"></textarea>
-          <br />
-          <button onClick={handleSave}>Save</button>
-          <button onClick={handleCancel}>Cancel</button>
+          <input type="text" value={updatedTitle} onChange={handleTitleChange} />
+          <textarea value={updatedDescription} onChange={handleDescriptionChange} />
+          <button onClick={handleSaveClick}>Save</button>
+          <button onClick={handleCancelClick}>Cancel</button>
         </>
       ) : (
         <>
           <h3>{title}</h3>
           <p>{description}</p>
-          <button onClick={handleEdit}>Edit</button>
-          <button onClick={handleDelete}>Delete</button>
+          <button onClick={() => setIsEditing(true)}>Edit</button>
+          <button onClick={handleDeleteClick}>Delete</button>
         </>
       )}
     </div>
