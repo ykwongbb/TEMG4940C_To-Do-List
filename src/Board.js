@@ -83,92 +83,49 @@ function Board() {
   };
 
   const handleDragEnd = (result) => {
-    if (!result.destination) {
+    const { source, destination } = result;
+  
+    if (!destination) {
       return;
     }
-  
-    const { source, destination } = result;
   
     const sourceListId = source.droppableId;
     const destinationListId = destination.droppableId;
     const sourceIndex = source.index;
     const destinationIndex = destination.index;
   
-    if (sourceListId === destinationListId) {
-      if (sourceListId === 'todo-list') {
-        const newTasks = [...toDoTasks];
-        const [removedTask] = newTasks.splice(sourceIndex, 1);
-        newTasks.splice(destinationIndex, 0, removedTask);
-        setToDoTasks(newTasks);
-      } else if (sourceListId === 'in-progress-list') {
-        const newTasks = [...inProgressTasks];
-        const [removedTask] = newTasks.splice(sourceIndex, 1);
-        newTasks.splice(destinationIndex, 0, removedTask);
-        setInProgressTasks(newTasks);
-      } else if (sourceListId === 'archived-list') {
-        const newTasks = [...archivedTasks];
-        const [removedTask] = newTasks.splice(sourceIndex, 1);
-        newTasks.splice(destinationIndex, 0, removedTask);
-        setArchivedTasks(newTasks);
-      }
-    } else {
-      if (sourceListId === 'todo-list') {
-        const newTasks1 = [...toDoTasks];
-        const [removedTask] = newTasks1.splice(sourceIndex, 1);
-        if (destinationListId === 'in-progress-list') {
-          setInProgressTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        } else if (destinationListId === 'archived-list') {
-          setArchivedTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        }
-        setToDoTasks(newTasks1);
-      } else if (sourceListId === 'in-progress-list') {
-        const newTasks1 = [...inProgressTasks];
-        const [removedTask] = newTasks1.splice(sourceIndex, 1);
-        if (destinationListId === 'todo-list') {
-          setToDoTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        } else if (destinationListId === 'archived-list') {
-          setArchivedTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        }
-        setInProgressTasks(newTasks1);
-      } else if (sourceListId === 'archived-list') {
-        const newTasks1 = [...archivedTasks];
-        const [removedTask] = newTasks1.splice(sourceIndex, 1);
-        if (destinationListId === 'todo-list') {
-          setToDoTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        } else if (destinationListId === 'in-progress-list') {
-          setInProgressTasks((prevTasks) => {
-            const newTasks2 = [...prevTasks];
-            newTasks2.splice(destinationIndex, 0, removedTask);
-            return newTasks2;
-          });
-        }
-        setArchivedTasks(newTasks1);
-      }
-    }
+    const taskLists = {
+      'todo-list': toDoTasks,
+      'in-progress-list': inProgressTasks,
+      'archived-list': archivedTasks,
+    };
+  
+    const getSourceList = (listId) => {
+      return taskLists[listId];
+    };
+  
+    const getDestinationList = (listId) => {
+      return taskLists[listId];
+    };
+  
+    const sourceList = getSourceList(sourceListId);
+    const destinationList = getDestinationList(destinationListId);
+  
+    const [removedTask] = sourceList.splice(sourceIndex, 1);
+    destinationList.splice(destinationIndex, 0, removedTask);
+  
+    const setTasks = {
+      'todo-list': setToDoTasks,
+      'in-progress-list': setInProgressTasks,
+      'archived-list': setArchivedTasks,
+    };
+  
+    setTasks[sourceListId](sourceList);
+    setTasks[destinationListId](destinationList);
   };
 
   return (
-    <DragDropContext onDragEnd={handleDragEnd}>
+    <DragDropContext onDragEnd={handleDragEnd} debug={true}>
       <div className="board-wrapper">
         <h1 className="title">To Do list</h1>
         <div className="board">

@@ -55,7 +55,7 @@ body {
 .list.in-progress h2 {
   background-color: #ffa600;
   color: black;
-  padding: 10px;
+ 
   width: 95%;
 }
 
@@ -77,6 +77,7 @@ body {
 .card {
   background-color: white;
   padding: 10px;
+  border-radius: 0.5rem;
   margin-bottom: 10px;
   box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.4);
   width: 95%;
@@ -124,22 +125,12 @@ button[type='submit'] {
   cursor: pointer;
 }
 
-.button-container button {
-  width: 100%;
-  background-color: #3273dc;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  padding: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
 
-.button-container button:hover {
-  background-color: #2458ab;
-}
 
 .title {
   text-align: center;
   margin-top: 2rem;
 }
+
+
+
