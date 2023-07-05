@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 
-
-const Card = React.memo(({ title, description, index, status, onUpdateTask, onDeleteTask }) => {
+const Card = React.memo(({ id, title, description, status, onUpdateTask, onDeleteTask }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [updatedTitle, setUpdatedTitle] = useState(title);
   const [updatedDescription, setUpdatedDescription] = useState(description);
@@ -20,21 +20,29 @@ const Card = React.memo(({ title, description, index, status, onUpdateTask, onDe
     setUpdatedDescription(description);
   }, [title, description]);
 
+  const handleEditClick = useCallback(() => {
+    setIsEditing(true);
+    setUpdatedTitle(title);
+    setUpdatedDescription(description);
+  }, [title, description]);
+
   const handleSaveClick = useCallback(() => {
     setIsEditing(false);
-    onUpdateTask(index, updatedTitle, updatedDescription, status);
-  }, [index, status, updatedTitle, updatedDescription, onUpdateTask]);
+    onUpdateTask(id, updatedTitle, updatedDescription, status);
+  }, [id, status, updatedTitle, updatedDescription, onUpdateTask]);
 
   const handleDeleteClick = useCallback(() => {
-    onDeleteTask(index, status);
-  }, [index, status, onDeleteTask]);
+    onDeleteTask(id, status);
+  }, [id, status, onDeleteTask]);
 
   const cardBody = useMemo(() => {
     if (isEditing) {
       return (
         <>
           <input type="text" value={updatedTitle} onChange={handleTitleChange} />
+          <br />
           <textarea value={updatedDescription} onChange={handleDescriptionChange} />
+          <br />
           <button onClick={handleSaveClick}>Save</button>
           <button onClick={handleCancelClick}>Cancel</button>
         </>
@@ -44,15 +52,17 @@ const Card = React.memo(({ title, description, index, status, onUpdateTask, onDe
         <>
           <h3>{title}</h3>
           <p>{description}</p>
-          <button onClick={() => setIsEditing(true)}>Edit</button>
+          <button onClick={handleEditClick}>Edit</button>
           <button onClick={handleDeleteClick}>Delete</button>
         </>
       );
     }
-  }, [isEditing, title, description, updatedTitle, updatedDescription, handleTitleChange, handleDescriptionChange, handleSaveClick, handleCancelClick, handleDeleteClick]);
+  }, [isEditing, title, description, updatedTitle, updatedDescription, handleTitleChange, handleDescriptionChange, handleSaveClick, handleCancelClick, handleEditClick, handleDeleteClick]);
+
+  const taskId = useMemo(() => uuidv4(), []);
 
   return (
-    <div className="card">
+    <div className="card" key={taskId}>
       {cardBody}
     </div>
   );

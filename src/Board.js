@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Card from './Card';
 import './App.css';
+import { v4 as uuidv4 } from 'uuid';
 
 function Board() {
   const [toDoTasks, setToDoTasks] = useState([]);
@@ -12,7 +13,7 @@ function Board() {
 
   const handleNewTaskSubmit = (event) => {
     event.preventDefault();
-    const newTask = { title: newTaskTitle, description: newTaskDescription };
+    const newTask = { id: uuidv4(), title: newTaskTitle, description: newTaskDescription };
     setToDoTasks((prevTasks) => {
       return [...prevTasks, newTask];
     });
@@ -129,6 +130,7 @@ function Board() {
       <div className="board-wrapper">
         <h1 className="title">To Do list</h1>
         <div className="board">
+          {/* ADD DROPPABLE COMPONENT HERE */}
           <Droppable droppableId="todo-list">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="list todo">
@@ -160,7 +162,7 @@ function Board() {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         ref={provided.innerRef}
-                        className="card-container"
+                        key ="card-container"
                       >
                         <Card
                           title={task.title}
@@ -178,6 +180,7 @@ function Board() {
               </div>
             )}
           </Droppable>
+          {/* END OF DROPPABLE COMPONENT */}
           <Droppable droppableId="in-progress-list">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="list in-progress">
