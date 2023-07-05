@@ -9,7 +9,7 @@ In the project directory, you can run:
 ### `npm start`
 
 Runs the app in the development mode.\
-Open https://ykwongbb.github.io/temg4940c_to-do-list/ to view it in your browser.
+Open [https://ykwongbb.github.io/temg4940c_to-do-list/ ](https://ykwongbb.github.io/TEMG4940C_To-Do-List/)to view it in your browser.
 [http://localhost:3000](http://localhost:3000) 
 
 The page will reload when you make changes.\
