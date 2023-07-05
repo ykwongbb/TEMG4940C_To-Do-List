@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/TEMG4940C_To-Do-List/static/css/main.1ee9244f.css",
+    "main.js": "/TEMG4940C_To-Do-List/static/js/main.76321167.js",
+    "static/js/787.48719189.chunk.js": "/TEMG4940C_To-Do-List/static/js/787.48719189.chunk.js",
+    "index.html": "/TEMG4940C_To-Do-List/index.html",
+    "main.1ee9244f.css.map": "/TEMG4940C_To-Do-List/static/css/main.1ee9244f.css.map",
+    "main.76321167.js.map": "/TEMG4940C_To-Do-List/static/js/main.76321167.js.map",
+    "787.48719189.chunk.js.map": "/TEMG4940C_To-Do-List/static/js/787.48719189.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1ee9244f.css",
+    "static/js/main.76321167.js"
+  ]
+}
