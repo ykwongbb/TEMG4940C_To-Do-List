@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Card from './Card';
 import './App.css';
-import { v4 as uuidv4 } from 'uuid';
 
 function Board() {
   const [toDoTasks, setToDoTasks] = useState([]);
@@ -13,7 +12,7 @@ function Board() {
 
   const handleNewTaskSubmit = (event) => {
     event.preventDefault();
-    const newTask = { id: uuidv4(), title: newTaskTitle, description: newTaskDescription };
+    const newTask = { title: newTaskTitle, description: newTaskDescription };
     setToDoTasks((prevTasks) => {
       return [...prevTasks, newTask];
     });
@@ -84,53 +83,52 @@ function Board() {
   };
 
   const handleDragEnd = (result) => {
-    const { source, destination } = result;
-  
-    if (!destination) {
-      return;
-    }
-  
-    const sourceListId = source.droppableId;
-    const destinationListId = destination.droppableId;
-    const sourceIndex = source.index;
-    const destinationIndex = destination.index;
-  
-    const taskLists = {
-      'todo-list': toDoTasks,
-      'in-progress-list': inProgressTasks,
-      'archived-list': archivedTasks,
-    };
-  
-    const getSourceList = (listId) => {
-      return taskLists[listId];
-    };
-  
-    const getDestinationList = (listId) => {
-      return taskLists[listId];
-    };
-  
-    const sourceList = getSourceList(sourceListId);
-    const destinationList = getDestinationList(destinationListId);
-  
-    const [removedTask] = sourceList.splice(sourceIndex, 1);
-    destinationList.splice(destinationIndex, 0, removedTask);
-  
-    const setTasks = {
-      'todo-list': setToDoTasks,
-      'in-progress-list': setInProgressTasks,
-      'archived-list': setArchivedTasks,
-    };
-  
-    setTasks[sourceListId](sourceList);
-    setTasks[destinationListId](destinationList);
+  if (!result.destination) {
+    return;
+  }
+
+  const { source, destination } = result;
+
+  const sourceListId = source.droppableId;
+  const destinationListId = destination.droppableId;
+  const sourceIndex = source.index;
+  const destinationIndex = destination.index;
+
+  const newTasks = {
+    "todo-list": [...toDoTasks],
+    "in-progress-list": [...inProgressTasks],
+    "archived-list": [...archivedTasks]
   };
+
+  const [removedTask] = newTasks[sourceListId].splice(sourceIndex, 1);
+
+  // Reset edit mode of the card that was previously in the same position as the moved card
+  if (newTasks[sourceListId][destinationIndex] && newTasks[sourceListId][destinationIndex].editMode) {
+    newTasks[sourceListId][destinationIndex].editMode = false;
+  }
+  
+  if (destinationListId === sourceListId) {
+    newTasks[sourceListId].splice(destinationIndex, 0, removedTask);
+  } else {
+    newTasks[destinationListId].splice(destinationIndex, 0, removedTask);
+    // Set edit mode based on whether the card was in edit mode before it was moved
+    if (removedTask.editMode) {
+      newTasks[destinationListId][destinationIndex].editMode = true;
+    } else {
+      newTasks[destinationListId][destinationIndex].editMode = false;
+    }
+  }
+
+  setToDoTasks(newTasks["todo-list"]);
+  setInProgressTasks(newTasks["in-progress-list"]);
+  setArchivedTasks(newTasks["archived-list"]);
+};
 
   return (
     <DragDropContext onDragEnd={handleDragEnd} debug={true}>
       <div className="board-wrapper">
         <h1 className="title">To Do list</h1>
         <div className="board">
-          {/* ADD DROPPABLE COMPONENT HERE */}
           <Droppable droppableId="todo-list">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="list todo">
@@ -162,7 +160,7 @@ function Board() {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                         ref={provided.innerRef}
-                        key ="card-container"
+                        className="card-container"
                       >
                         <Card
                           title={task.title}
@@ -180,7 +178,6 @@ function Board() {
               </div>
             )}
           </Droppable>
-          {/* END OF DROPPABLE COMPONENT */}
           <Droppable droppableId="in-progress-list">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="list in-progress">

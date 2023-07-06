@@ -1,71 +1,94 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useEffect, useRef } from 'react';
 
-const Card = React.memo(({ id, title, description, status, onUpdateTask, onDeleteTask }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [updatedTitle, setUpdatedTitle] = useState(title);
-  const [updatedDescription, setUpdatedDescription] = useState(description);
+function Card({ title, description, position, index, status, onUpdateTask, onDeleteTask, disabled }) {
+  const [editMode, setEditModeLocal] = useState(false);
+  const [newTitle, setNewTitle] = useState(title);
+  const [newDescription, setNewDescription] = useState(description);
+  const [originalData, setOriginalData] = useState({ title, description });
+  const [selected, setSelected] = useState(false);
+  const prevCardRef = useRef(null);
 
-  const handleTitleChange = useCallback((event) => {
-    setUpdatedTitle(event.target.value);
-  }, []);
-
-  const handleDescriptionChange = useCallback((event) => {
-    setUpdatedDescription(event.target.value);
-  }, []);
-
-  const handleCancelClick = useCallback(() => {
-    setIsEditing(false);
-    setUpdatedTitle(title);
-    setUpdatedDescription(description);
+  useEffect(() => {
+    setOriginalData({ title, description });
+    setNewTitle(title);
+    setNewDescription(description);
   }, [title, description]);
 
-  const handleEditClick = useCallback(() => {
-    setIsEditing(true);
-    setUpdatedTitle(title);
-    setUpdatedDescription(description);
-  }, [title, description]);
-
-  const handleSaveClick = useCallback(() => {
-    setIsEditing(false);
-    onUpdateTask(id, updatedTitle, updatedDescription, status);
-  }, [id, status, updatedTitle, updatedDescription, onUpdateTask]);
-
-  const handleDeleteClick = useCallback(() => {
-    onDeleteTask(id, status);
-  }, [id, status, onDeleteTask]);
-
-  const cardBody = useMemo(() => {
-    if (isEditing) {
-      return (
-        <>
-          <input type="text" value={updatedTitle} onChange={handleTitleChange} />
-          <br />
-          <textarea value={updatedDescription} onChange={handleDescriptionChange} />
-          <br />
-          <button onClick={handleSaveClick}>Save</button>
-          <button onClick={handleCancelClick}>Cancel</button>
-        </>
-      );
-    } else {
-      return (
-        <>
-          <h3>{title}</h3>
-          <p>{description}</p>
-          <button onClick={handleEditClick}>Edit</button>
-          <button onClick={handleDeleteClick}>Delete</button>
-        </>
-      );
+  useEffect(() => {
+    // Unset edit mode state of previous card
+    if (prevCardRef.current && prevCardRef.current !== index) {
+      prevCardRef.current.setEditModeLocal(false);
     }
-  }, [isEditing, title, description, updatedTitle, updatedDescription, handleTitleChange, handleDescriptionChange, handleSaveClick, handleCancelClick, handleEditClick, handleDeleteClick]);
+    // Reset edit mode state when position changes
+    setEditModeLocal(false);
+  }, [position, index]);
 
-  const taskId = useMemo(() => uuidv4(), []);
+  const handleTitleChange = (event) => {
+    setNewTitle(event.target.value);
+  };
+
+  const handleDescriptionChange = (event) => {
+    setNewDescription(event.target.value);
+  };
+
+  const handleEditMode = () => {
+    if (!disabled) {
+      prevCardRef.current = index;
+      setSelected(true);
+      setOriginalData({ title, description });
+      setEditModeLocal(true);
+    }
+  };
+
+  const handleCancel = () => {
+    setNewTitle(originalData.title);
+    setNewDescription(originalData.description);
+    setEditModeLocal(false);
+    setSelected(false);
+  };
+
+  const handleSave = () => {
+    onUpdateTask(index, newTitle, newDescription, status);
+    setOriginalData({ title: newTitle, description: newDescription });
+    setEditModeLocal(false);
+    setSelected(false);
+  };
+
+  const handleDelete = () => {
+    onDeleteTask(index, status);
+  };
+
+  const handleClick = () => {
+    if (!editMode && !disabled) {
+      setEditModeLocal(true);
+    }
+  };
 
   return (
-    <div className="card" key={taskId}>
-      {cardBody}
+    <div className={`card ${selected ? 'selected' : ''}`} onClick={handleClick}>
+      {editMode ? (
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <input type="text" value={newTitle} onChange={handleTitleChange} />
+          <textarea value={newDescription} onChange={handleDescriptionChange} />
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <button className="card-btn card-save-btn" onClick={handleSave}>Save</button>
+            <button className="card-btn card-cancel-btn" onClick={handleCancel}>Cancel</button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <h3>{title}</h3>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <p>{description}</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <button className="card-btn card-edit-btn" onClick={handleEditMode} disabled={disabled}>Edit</button>
+              <button className="card-btn card-delete-btn" onClick={handleDelete}>Delete</button>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
-});
+}
 
 export default Card;
