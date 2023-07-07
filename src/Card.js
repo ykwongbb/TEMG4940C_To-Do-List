@@ -34,7 +34,6 @@ function Card({ title, description, position, index, status, onUpdateTask, onDel
   const handleEditMode = () => {
     if (!disabled) {
       prevCardRef.current = index;
-      setSelected(true);
       setOriginalData({ title, description });
       setEditModeLocal(true);
     }

@@ -135,4 +135,41 @@ button[type='submit'] {
 }
 
 
+.search-container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 30px;
+}
+
+.search-container input[type="text"] {
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #f2f2f7;
+  font-size: 16px;
+  width: 200px;
+}
+
+.search-bar input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.search-bar button {
+  background-color: #007bff;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.search-bar button:hover {
+  background-color: #437ec1;
+}
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import Card from './Card';
 import './App.css';
@@ -9,6 +9,21 @@ function Board() {
   const [archivedTasks, setArchivedTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  useEffect(() => {
+    const storedData = JSON.parse(localStorage.getItem('boardData'));
+    if (storedData) {
+      setToDoTasks(storedData.toDoTasks || []);
+      setInProgressTasks(storedData.inProgressTasks || []);
+      setArchivedTasks(storedData.archivedTasks || []);
+    }
+  }, []);
+
+  useEffect(() => {
+    const boardData = { toDoTasks, inProgressTasks, archivedTasks };
+    localStorage.setItem('boardData', JSON.stringify(boardData));
+  }, [toDoTasks, inProgressTasks, archivedTasks]);
+
 
   const handleNewTaskSubmit = (event) => {
     event.preventDefault();
@@ -124,109 +139,142 @@ function Board() {
   setArchivedTasks(newTasks["archived-list"]);
 };
 
-  return (
-    <DragDropContext onDragEnd={handleDragEnd} debug={true}>
-      <div className="board-wrapper">
-        <h1 className="title">To Do list</h1>
-        <div className="board">
-          <Droppable droppableId="todo-list">
-            {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef} className="list todo">
-                <h2>To Do</h2>
-                <div className="form-container">
-                  <form onSubmit={handleNewTaskSubmit}>
-                    <input
-                      type="text"
-                      name="title"
-                      value={newTaskTitle}
-                      onChange={handleNewTaskTitleChange}
-                      placeholder="Enter task title"
-                      required
-                    />
-                    <textarea
-                      name="description"
-                      value={newTaskDescription}
-                      onChange={handleNewTaskDescriptionChange}
-                      placeholder="Enter task description"
-                      required
-                    />
-                    <button type="submit">Add Task</button>
-                  </form>
-                </div>
-                {toDoTasks.map((task, index) => (
-                  <Draggable key={index} draggableId={`todo-task-${index}`} index={index}>
-                    {(provided) => (
-                      <div
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        ref={provided.innerRef}
-                        className="card-container"
-                      >
-                        <Card
-                          title={task.title}
-                          description={task.description}
-                          index={index}
-                          status="todo"
-                          onUpdateTask={handleUpdateTask}
-                          onDeleteTask={handleDeleteTask}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
+const handleSearchTermChange = (event) => {
+  setSearchTerm(event.target.value);
+};
+
+// Filter tasks based on search term
+const filteredToDoTasks = toDoTasks.filter(task =>
+  task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  task.description.toLowerCase().includes(searchTerm.toLowerCase())
+);
+const filteredInProgressTasks = inProgressTasks.filter(task =>
+  task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  task.description.toLowerCase().includes(searchTerm.toLowerCase())
+);
+const filteredArchivedTasks = archivedTasks.filter(task =>
+  task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  task.description.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+return (
+  <div className="board-wrapper">
+    <h1 className="title">To Do list</h1>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <div className="search-container">
+        <div className="search-bar">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={handleSearchTermChange}
+            placeholder="Search tasks"
+          />
+          <button>Search</button>
+        </div>
+      </div>
+      <div className="board">
+        <Droppable droppableId="todo-list">
+          {(provided) => (
+            <div
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+              className="list todo"
+            >
+              <h2>To Do</h2>
+              <div className="form-container">
+                <form onSubmit={handleNewTaskSubmit}>
+                  <input
+                    type="text"
+                    name="title"
+                    value={newTaskTitle}
+                    onChange={handleNewTaskTitleChange}
+                    placeholder="Enter task title"
+                    required
+                  />
+                  <textarea
+                    name="description"
+                    value={newTaskDescription}
+                    onChange={handleNewTaskDescriptionChange}
+                    placeholder="Enter task description"
+                    required
+                  />
+                  <button type="submit">Add Task</button>
+                </form>
               </div>
-            )}
-          </Droppable>
-          <Droppable droppableId="in-progress-list">
-            {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef} className="list in-progress">
-                <h2>In Progress</h2>
-                {inProgressTasks.map((task, index) => (
-                  <Draggable key={index} draggableId={`in-progress-task-${index}`} index={index}>
-                    {(provided) => (
-                      <div
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        ref={provided.innerRef}
-                        className="card-container"
-                      >
-                        <Card
-                          title={task.title}
-                          description={task.description}
-                          index={index}
-                          status="inProgress"
-                          onUpdateTask={handleUpdateTask}
-                          onDeleteTask={handleDeleteTask}
-                        />
-                      </div>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
-          <Droppable droppableId="archived-list">
-            {(provided) => (
-              <div {...provided.droppableProps} ref={provided.innerRef} className="list archived">
-                <h2>Archived</h2>
-                {archivedTasks.map((task, index) => (
-                  <Draggable key={index} draggableId={`archived-task-${index}`} index={index}>
-                    {(provided) => (
-                      <div
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        ref={provided.innerRef}
-                        className="card-container"
-                      >
-                        <Card
-                          title={task.title}
-                          description={task.description}
-                          index={index}
-                          status="archived"
-                          onUpdateTask={handleUpdateTask}
-                          onDeleteTask={handleDeleteTask}
+              {filteredToDoTasks.map((task, index) => (
+                <Draggable key={index} draggableId={`todo-task-${index}`} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="card-container"
+                    >
+                      <Card
+                        title={task.title}
+                        description={task.description}
+                        index={index}
+                        status="todo"
+                        onUpdateTask={handleUpdateTask}
+                        onDeleteTask={handleDeleteTask}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+        <Droppable droppableId="in-progress-list">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="list in-progress">
+              <h2>In Progress</h2>
+              {filteredInProgressTasks.map((task, index) => (
+                <Draggable key={index} draggableId={`in-progress-task-${index}`} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="card-container"
+                    >
+                      <Card
+                        title={task.title}
+                        description={task.description}
+                        index={index}
+                        status="inProgress"
+                        onUpdateTask={handleUpdateTask}
+                        onDeleteTask={handleDeleteTask}
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+        <Droppable droppableId="archived-list">
+          {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="list archived">
+              <h2>Archived</h2>
+              {filteredArchivedTasks.map((task, index) => (
+                <Draggable key={index} draggableId={`archived-task-${index}`} index={index}>
+                  {(provided) => (
+                    <div
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps}
+                      ref={provided.innerRef}
+                      className="card-container"
+                    >
+                      <Card
+                        title={task.title}
+                        description={task.description}
+                        index={index}
+                        status="archived"
+                        onUpdateTask={handleUpdateTask}
+                        onDeleteTask={handleDeleteTask}
                         />
                       </div>
                     )}
@@ -237,8 +285,8 @@ function Board() {
             )}
           </Droppable>
         </div>
-      </div>
-    </DragDropContext>
+      </DragDropContext>
+    </div>
   );
 }
 
