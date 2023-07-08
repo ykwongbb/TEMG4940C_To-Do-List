@@ -10,6 +10,8 @@ function Board() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
+  
   useEffect(() => {
     const storedData = JSON.parse(localStorage.getItem('boardData'));
     if (storedData) {
@@ -96,48 +98,50 @@ function Board() {
       });
     }
   };
+  
 
   const handleDragEnd = (result) => {
-  if (!result.destination) {
-    return;
-  }
-
-  const { source, destination } = result;
-
-  const sourceListId = source.droppableId;
-  const destinationListId = destination.droppableId;
-  const sourceIndex = source.index;
-  const destinationIndex = destination.index;
-
-  const newTasks = {
-    "todo-list": [...toDoTasks],
-    "in-progress-list": [...inProgressTasks],
-    "archived-list": [...archivedTasks]
-  };
-
-  const [removedTask] = newTasks[sourceListId].splice(sourceIndex, 1);
-
-  // Reset edit mode of the card that was previously in the same position as the moved card
-  if (newTasks[sourceListId][destinationIndex] && newTasks[sourceListId][destinationIndex].editMode) {
-    newTasks[sourceListId][destinationIndex].editMode = false;
-  }
+    setIsDragging(false);
+    if (!result.destination) {
+      return;
+    }
   
-  if (destinationListId === sourceListId) {
-    newTasks[sourceListId].splice(destinationIndex, 0, removedTask);
-  } else {
-    newTasks[destinationListId].splice(destinationIndex, 0, removedTask);
-    // Set edit mode based on whether the card was in edit mode before it was moved
-    if (removedTask.editMode) {
-      newTasks[destinationListId][destinationIndex].editMode = true;
-    } else {
+    const { source, destination } = result;
+  
+    const sourceListId = source.droppableId;
+    const destinationListId = destination.droppableId;
+    const sourceIndex = source.index;
+    const destinationIndex = destination.index;
+  
+    const newTasks = {
+      "todo-list": [...toDoTasks],
+      "in-progress-list": [...inProgressTasks],
+      "archived-list": [...archivedTasks]
+    };
+  
+    const [removedTask] = newTasks[sourceListId].splice(sourceIndex, 1);
+  
+    // Reset the editMode state of the card that was previously in the same position as the moved card
+    if (
+      newTasks[destinationListId][destinationIndex] &&
+      newTasks[destinationListId][destinationIndex].editMode
+    ) {
       newTasks[destinationListId][destinationIndex].editMode = false;
     }
-  }
-
-  setToDoTasks(newTasks["todo-list"]);
-  setInProgressTasks(newTasks["in-progress-list"]);
-  setArchivedTasks(newTasks["archived-list"]);
-};
+  
+    if (destinationListId === sourceListId) {
+      newTasks[sourceListId].splice(destinationIndex, 0, removedTask);
+    } else {
+      newTasks[destinationListId].splice(destinationIndex, 0, {
+        ...removedTask,
+        editMode: false
+      });
+    }
+  
+    setToDoTasks(newTasks["todo-list"]);
+    setInProgressTasks(newTasks["in-progress-list"]);
+    setArchivedTasks(newTasks["archived-list"]);
+  };
 
 const handleSearchTermChange = (event) => {
   setSearchTerm(event.target.value);
@@ -203,23 +207,26 @@ return (
               </div>
               {filteredToDoTasks.map((task, index) => (
                 <Draggable key={index} draggableId={`todo-task-${index}`} index={index}>
-                  {(provided) => (
-                    <div
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      ref={provided.innerRef}
-                      className="card-container"
-                    >
-                      <Card
-                        title={task.title}
-                        description={task.description}
-                        index={index}
-                        status="todo"
-                        onUpdateTask={handleUpdateTask}
-                        onDeleteTask={handleDeleteTask}
-                      />
-                    </div>
-                  )}
+                {(provided, snapshot) => (
+                  <div
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    ref={provided.innerRef}
+                    className={`form-container ${
+                      snapshot.isDraggingOver && !isDragging ? 'dragging-over' : ''
+                    }`}
+                  >
+                    <Card
+                      title={task.title}
+                      description={task.description}
+                      index={index}
+                      status="todo"
+                      onUpdateTask={handleUpdateTask}
+                      onDeleteTask={handleDeleteTask}
+                      isDragging={snapshot.isDragging}
+                    />
+                  </div>
+                )}
                 </Draggable>
               ))}
               {provided.placeholder}
@@ -232,12 +239,14 @@ return (
               <h2>In Progress</h2>
               {filteredInProgressTasks.map((task, index) => (
                 <Draggable key={index} draggableId={`in-progress-task-${index}`} index={index}>
-                  {(provided) => (
+                {(provided, snapshot) => (
                     <div
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       ref={provided.innerRef}
-                      className="card-container"
+                      className={`form-container  ${
+                        snapshot.isDraggingOver && !isDragging ? 'dragging-over' : ''
+                      }`}
                     >
                       <Card
                         title={task.title}
@@ -246,6 +255,7 @@ return (
                         status="inProgress"
                         onUpdateTask={handleUpdateTask}
                         onDeleteTask={handleDeleteTask}
+                        isDragging={snapshot.isDragging}
                       />
                     </div>
                   )}
@@ -256,7 +266,7 @@ return (
           )}
         </Droppable>
         <Droppable droppableId="archived-list">
-          {(provided) => (
+          {(provided,  snapshot) => (
             <div {...provided.droppableProps} ref={provided.innerRef} className="list archived">
               <h2>Archived</h2>
               {filteredArchivedTasks.map((task, index) => (
@@ -266,7 +276,9 @@ return (
                       {...provided.draggableProps}
                       {...provided.dragHandleProps}
                       ref={provided.innerRef}
-                      className="card-container"
+                      className={`form-container  ${
+                        snapshot.isDraggingOver && !isDragging ? 'dragging-over' : ''
+                      }`}
                     >
                       <Card
                         title={task.title}
@@ -275,6 +287,7 @@ return (
                         status="archived"
                         onUpdateTask={handleUpdateTask}
                         onDeleteTask={handleDeleteTask}
+                        isDragging={snapshot.isDragging}
                         />
                       </div>
                     )}

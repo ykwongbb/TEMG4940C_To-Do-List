@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-function Card({ title, description, position, index, status, onUpdateTask, onDeleteTask, disabled }) {
+function Card({ title, description, position, index, status, onUpdateTask, onDeleteTask, disabled, isDragging}) {
   const [editMode, setEditModeLocal] = useState(false);
   const [newTitle, setNewTitle] = useState(title);
   const [newDescription, setNewDescription] = useState(description);
@@ -23,6 +23,12 @@ function Card({ title, description, position, index, status, onUpdateTask, onDel
     setEditModeLocal(false);
   }, [position, index]);
 
+  useEffect(() => {
+    if (isDragging) {
+      setEditModeLocal(false);
+    }
+  }, [isDragging]);
+
   const handleTitleChange = (event) => {
     setNewTitle(event.target.value);
   };
@@ -36,6 +42,7 @@ function Card({ title, description, position, index, status, onUpdateTask, onDel
       prevCardRef.current = index;
       setOriginalData({ title, description });
       setEditModeLocal(true);
+      setSelected(false);
     }
   };
 
@@ -57,14 +64,10 @@ function Card({ title, description, position, index, status, onUpdateTask, onDel
     onDeleteTask(index, status);
   };
 
-  const handleClick = () => {
-    if (!editMode && !disabled) {
-      setEditModeLocal(true);
-    }
-  };
+ 
 
   return (
-    <div className={`card ${selected ? 'selected' : ''}`} onClick={handleClick}>
+    <div className={`card ${selected ? 'selected' : ''}`}>
       {editMode ? (
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <input type="text" value={newTitle} onChange={handleTitleChange} />
